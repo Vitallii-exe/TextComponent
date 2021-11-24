@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "9f37725c-e7ed-4a2e-b402-d3c3075e87b4": {
+      "ProjectGuid": "9f37725c-e7ed-4a2e-b402-d3c3075e87b4",
+      "DisplayName": "TextComponent",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}

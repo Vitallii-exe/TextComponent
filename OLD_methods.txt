@@ -1,0 +1,60 @@
+namespace TextComponent
+{
+    public partial class FormForText : Form
+    {
+        int startSelectionIndex = -1;
+        int finishSelectionIndex = -1;
+        int textCursor = -1;
+
+        bool textChanged = false;
+
+        enum EditingStates {Passive, Selected};
+
+        EditingStates currState = EditingStates.Passive;
+        public FormForText()
+        {
+            InitializeComponent();
+            SetDefaultValuesRichTextBox();
+            Thread checkEditing = new Thread(ChangeCall);
+            checkEditing.IsBackground = true;
+            checkEditing.Start();
+        }
+        private void SetDefaultValuesRichTextBox()
+        {
+            int fontSize = 14;
+            richTextBox.Font = new Font(richTextBox.Font.FontFamily, (float)fontSize);
+            richTextBox.Text = "Пример текста для проверки работы приложения";
+            SelectionStartLabel.Text = "";
+
+        }
+
+        private void RichTextBoxSelectionChanged(object sender, EventArgs e)
+        {
+            int currentSelectionStart = richTextBox.SelectionStart;
+            int currentSelectionFinish = richTextBox.SelectionStart + richTextBox.SelectionLength;
+            textCursor = currentSelectionStart;
+
+            if (textCursor > finishSelectionIndex | textCursor < startSelectionIndex)
+            {
+                MessageBox.Show(
+           "INFO",
+           "Event",
+           MessageBoxButtons.OK,
+           MessageBoxIcon.Information);
+            }
+
+        }
+
+        private void ChangeCall() {
+            while (true)
+            {
+               
+            }
+        }
+
+        private void richTextBox_TextChanged(object sender, EventArgs e)
+        {
+            
+        }
+    }
+}
