@@ -5,5 +5,8 @@
     <Compile Update="FormForText.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="UserTextComponent.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
   </ItemGroup>
 </Project>
