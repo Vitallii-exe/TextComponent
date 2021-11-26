@@ -7,6 +7,7 @@
 
         int currentCursorPosition = -1;
         (int start, int end) selectionBorder = (0, 0);
+        Char[] splitters = { '\n', ' ', '\r' };
         public UserTextComponent()
         {
             InitializeComponent();
@@ -44,7 +45,7 @@
 
             for (int i = currentCursorPosition + 1; i > 0 & i < text.Length; i++)
             {
-                if (text[i] == ' ' | text[i] == '\n')
+                if (splitters.Contains(text[i]))
                 {
                     end = i;
                     break;
@@ -53,7 +54,7 @@
 
             for (int i = currentCursorPosition - 1; i > 0 & i < text.Length; i -= 1)
             {
-                if (text[i] == ' ' | text[i] == '\n')
+                if (splitters.Contains(text[i]))
                 {
                     start = i;
                     break;
@@ -68,8 +69,7 @@
             int lastPrintedLetterIndex = currentCursorPosition - 1;
             if (lastPrintedLetterIndex > -1)
             {
-                if (richTextBox.Text[currentCursorPosition - 1] == ' ' |
-                    richTextBox.Text[currentCursorPosition - 1] == '\n')
+                if (splitters.Contains(richTextBox.Text[currentCursorPosition - 1]))
                 {
                     MessageBox.Show("INFO", "Event", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
