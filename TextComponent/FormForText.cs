@@ -2,16 +2,15 @@ namespace TextComponent
 {
     public partial class FormForText : Form
     {
-        bool isEditing = false;
-        bool isSelected = false;
-
-        int currentCursorPosition = -1;
-        (int start, int end) selectionBorder = (0, 0);
         public FormForText()
         {
             InitializeComponent();
-            UserTextComponent TextComponent = new UserTextComponent();
         }
-       
+
+        private void TextEdited((int start, int end) selection, string newText)
+        {
+            string fromStartToEnd = selection.start.ToString() + " : " + selection.end.ToString();
+            MessageBox.Show(fromStartToEnd, newText, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
     }
 }

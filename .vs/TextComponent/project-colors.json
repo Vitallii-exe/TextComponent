@@ -5,7 +5,32 @@
       "ProjectGuid": "9f37725c-e7ed-4a2e-b402-d3c3075e87b4",
       "DisplayName": "TextComponent",
       "ColorIndex": 0
+    },
+    "209a6312-a6d1-46a6-8aaa-b21f6f59e5b2": {
+      "ProjectGuid": "209a6312-a6d1-46a6-8aaa-b21f6f59e5b2",
+      "DisplayName": "TextComponentTests",
+      "ColorIndex": 1
+    },
+    "7f80141d-b08c-45e2-801a-62f8c57b2038": {
+      "ProjectGuid": "7f80141d-b08c-45e2-801a-62f8c57b2038",
+      "DisplayName": "TextComponentTests",
+      "ColorIndex": 2
+    },
+    "5e1de691-6fa5-4355-beff-84fac2662672": {
+      "ProjectGuid": "5e1de691-6fa5-4355-beff-84fac2662672",
+      "DisplayName": "TextComponentTests",
+      "ColorIndex": 3
+    },
+    "e4ce7800-92b5-4cfd-b35e-941f04c984b6": {
+      "ProjectGuid": "e4ce7800-92b5-4cfd-b35e-941f04c984b6",
+      "DisplayName": "TextComponentTests",
+      "ColorIndex": 4
+    },
+    "abf4037e-49b5-40eb-9d25-b88bdb9c5490": {
+      "ProjectGuid": "abf4037e-49b5-40eb-9d25-b88bdb9c5490",
+      "DisplayName": "TextComponentTests",
+      "ColorIndex": 5
     }
   },
-  "NextColorIndex": 1
+  "NextColorIndex": 6
 }

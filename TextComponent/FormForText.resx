@@ -58,26 +58,26 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="userTextComponent1.Location" type="System.Drawing.Point, System.Drawing">
+  <data name="userTextComponent.Location" type="System.Drawing.Point, System.Drawing">
     <value>12, 12</value>
   </data>
-  <data name="userTextComponent1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>828, 500</value>
+  <data name="userTextComponent.Size" type="System.Drawing.Size, System.Drawing">
+    <value>697, 201</value>
   </data>
   <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="userTextComponent1.TabIndex" type="System.Int32, mscorlib">
+  <data name="userTextComponent.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
   </data>
-  <data name="&gt;&gt;userTextComponent1.Name" xml:space="preserve">
-    <value>userTextComponent1</value>
+  <data name="&gt;&gt;userTextComponent.Name" xml:space="preserve">
+    <value>userTextComponent</value>
   </data>
-  <data name="&gt;&gt;userTextComponent1.Type" xml:space="preserve">
+  <data name="&gt;&gt;userTextComponent.Type" xml:space="preserve">
     <value>TextComponent.UserTextComponent, TextComponent, Culture=neutral, PublicKeyToken=null</value>
   </data>
-  <data name="&gt;&gt;userTextComponent1.Parent" xml:space="preserve">
+  <data name="&gt;&gt;userTextComponent.Parent" xml:space="preserve">
     <value>$this</value>
   </data>
-  <data name="&gt;&gt;userTextComponent1.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;userTextComponent.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -87,7 +87,7 @@
     <value>8, 20</value>
   </data>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
-    <value>960, 564</value>
+    <value>721, 258</value>
   </data>
   <data name="$this.Text" xml:space="preserve">
     <value>FormForTextComponent</value>

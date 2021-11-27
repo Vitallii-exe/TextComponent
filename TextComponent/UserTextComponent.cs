@@ -2,6 +2,10 @@
 {
     public partial class UserTextComponent : UserControl
     {
+        public delegate void TextChangedEvent((int start, int end) selection, string newText);
+        public event TextChangedEvent TextChanged;
+        //TextChanged += 
+
         bool isEditing = false;
         bool isSelected = false;
 
@@ -18,11 +22,8 @@
         }
         private void SetDefaultValuesRichTextBox()
         {
-            int fontSize = 14;
-            richTextBox.Font = new Font(richTextBox.Font.FontFamily, (float)fontSize);
+            richTextBox.Font = new Font("Times New Roman", 14);
             richTextBox.Text = "Пример текста для проверки работы приложения";
-            //SelectionStartLabel.Text = "";
-
         }
 
         private void RichTextBoxSelectionChanged(object sender, EventArgs e)
@@ -34,10 +35,9 @@
                 selectionBorder.start = richTextBox.SelectionStart;
                 selectionBorder.end = richTextBox.SelectionStart + richTextBox.SelectionLength;
             }
-            //SelectionStartLabel.Text = currentCursorPosition.ToString();
         }
 
-        private (int, int) GetWordBoundaries(int currentCursorPosition, string text)
+        public (int, int) GetWordBoundaries(int currentCursorPosition, string text)
         {
             //Получает границы слова по пробелам с двух сторон
             int start = 1;
@@ -67,11 +67,11 @@
         private void richTextBoxTextChanged(object sender, EventArgs e)
         {
             int lastPrintedLetterIndex = currentCursorPosition - 1;
-            if (lastPrintedLetterIndex > -1)
+            if (lastPrintedLetterIndex > -1 & lastPrintedLetterIndex < richTextBox.Text.Length)
             {
                 if (splitters.Contains(richTextBox.Text[currentCursorPosition - 1]))
                 {
-                    MessageBox.Show("INFO", "Event", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    TextChanged?.Invoke(selectionBorder, "Test");
                 }
             }
             if (!isSelected)
@@ -79,7 +79,6 @@
                 selectionBorder = GetWordBoundaries(currentCursorPosition, richTextBox.Text);
             }
             isEditing = true;
-            //SelectionFinishLabel.Text = selectionBorder.end.ToString();
             return;
         }
 
@@ -92,12 +91,12 @@
                     if (currentCursorPosition < selectionBorder.start |
                         currentCursorPosition > selectionBorder.end)
                     {
-                        //Заглушка под событие
-                        MessageBox.Show("INFO", "Event", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        TextChanged?.Invoke(selectionBorder, "Test");
                         isSelected = false;
                         isEditing = false;
                     }
                 }
+                Thread.Sleep(20);
             }
         }
     }

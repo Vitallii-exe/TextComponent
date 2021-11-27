@@ -33,9 +33,9 @@
             // 
             // richTextBox
             // 
-            this.richTextBox.Location = new System.Drawing.Point(18, 26);
+            this.richTextBox.Location = new System.Drawing.Point(0, 0);
             this.richTextBox.Name = "richTextBox";
-            this.richTextBox.Size = new System.Drawing.Size(779, 462);
+            this.richTextBox.Size = new System.Drawing.Size(700, 200);
             this.richTextBox.TabIndex = 0;
             this.richTextBox.Text = "";
             this.richTextBox.SelectionChanged += new System.EventHandler(this.RichTextBoxSelectionChanged);
@@ -47,7 +47,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.richTextBox);
             this.Name = "UserTextComponent";
-            this.Size = new System.Drawing.Size(821, 507);
+            this.Size = new System.Drawing.Size(700, 200);
             this.ResumeLayout(false);
 
         }

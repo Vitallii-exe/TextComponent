@@ -29,20 +29,21 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormForText));
-            this.userTextComponent1 = new TextComponent.UserTextComponent();
+            this.userTextComponent = new TextComponent.UserTextComponent();
             this.SuspendLayout();
             // 
-            // userTextComponent1
+            // userTextComponent
             // 
-            resources.ApplyResources(this.userTextComponent1, "userTextComponent1");
-            this.userTextComponent1.Name = "userTextComponent1";
+            resources.ApplyResources(this.userTextComponent, "userTextComponent");
+            this.userTextComponent.Name = "userTextComponent";
+            this.userTextComponent.TextChanged += new TextComponent.UserTextComponent.TextChangedEvent(this.TextEdited);
             // 
             // FormForText
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.Controls.Add(this.userTextComponent1);
+            this.Controls.Add(this.userTextComponent);
             this.Cursor = System.Windows.Forms.Cursors.Default;
             this.ForeColor = System.Drawing.SystemColors.ControlText;
             this.Name = "FormForText";
@@ -52,6 +53,6 @@
 
         #endregion
 
-        private UserTextComponent userTextComponent1;
+        private UserTextComponent userTextComponent;
     }
 }
