@@ -16,6 +16,7 @@
         (int start, int end) selectionBorder = (0, 0);
         Char[] splitters = { '\n', ' ', '\r' };
         string currentText = "";
+        string oldText = "";
         public UserTextComponent()
         {
             InitializeComponent();
@@ -52,7 +53,7 @@
             int start = -1;
             int end = -1;
 
-            for (int i = currentCursorPosition; i > 0 & i < text.Length; i++)
+            for (int i = currentCursorPosition; i > -1 & i < text.Length; i++)
             {
                 if (splitters.Contains(text[i]))
                 {
@@ -61,7 +62,7 @@
                 }
             }
 
-            for (int i = currentCursorPosition - 1; i > 0 & i < text.Length; i -= 1)
+            for (int i = currentCursorPosition - 1; i > -1 & i < text.Length; i -= 1)
             {
                 if (splitters.Contains(text[i]))
                 {
@@ -110,9 +111,9 @@
         {
             int lastPrintedLetterIndex = currentCursorPosition - 1;
             currentText = richTextBox.Text;
-            if (lastPrintedLetterIndex > -1 & lastPrintedLetterIndex < richTextBox.Text.Length)
+            if (lastPrintedLetterIndex > -1 & lastPrintedLetterIndex < currentText.Length)
             {
-                if (splitters.Contains(richTextBox.Text[currentCursorPosition - 1]))
+                if (splitters.Contains(currentText[currentCursorPosition - 1]))
                 {
                     int borderLength = selectionBorderTmp.end - selectionBorderTmp.start;
                     string pieceText = "";
@@ -130,7 +131,7 @@
             }
             if (!isSelected)
             {
-                selectionBorderTmp = GetWordBoundaries(currentCursorPosition, richTextBox.Text);
+                selectionBorderTmp = GetWordBoundaries(currentCursorPosition, oldText);
                 label1.Text = selectionBorderTmp.start.ToString();
                 label2.Text = selectionBorderTmp.end.ToString();
             }
@@ -146,6 +147,7 @@
                 isTemporary = true;
             }
             isEditing = true;
+            oldText = currentText;
             return;
         }
 
