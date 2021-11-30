@@ -1,6 +1,7 @@
 # Prerequisites
 *.d
 *.pdb
+*.txt
 
 # Compiled Object files
 *.slo

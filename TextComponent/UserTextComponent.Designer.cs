@@ -41,7 +41,6 @@
             this.richTextBox.TabIndex = 0;
             this.richTextBox.Text = "";
             this.richTextBox.SelectionChanged += new System.EventHandler(this.RichTextBoxSelectionChanged);
-            this.richTextBox.TextChanged += new System.EventHandler(this.richTextBoxTextChanged);
             // 
             // label1
             // 

@@ -9,72 +9,25 @@
         bool isSelected = false;
         bool isTemporary = false;
 
-        int currentCursorPosition = -1;
-
-        (int start, int end) userSelection = (0, 0);
-        (int start, int end) selectionBorderTmp = (0, 0);
-        (int start, int end) selectionBorder = (0, 0);
         Char[] splitters = { '\n', ' ', '\r' };
+        (int start, int end) editingZone = (-1, -1);
+        (int start, int end) originalZone = (0, 0);
+        int currentCursorPosition = 0;
         string currentText = "";
         string oldText = "";
+
         public UserTextComponent()
         {
             InitializeComponent();
             SetDefaultValuesRichTextBox();
-            Thread checkEditing = new Thread(ChangeCall);
-            checkEditing.IsBackground = true;
-            checkEditing.Start();
         }
         private void SetDefaultValuesRichTextBox()
         {
             richTextBox.Font = new Font("Times New Roman", 14);
-            richTextBox.Text = "Данный текст необходим для проверки работы программы";
-            richTextBox.SelectionColor = Color.Red;
-        }
-
-        private void RichTextBoxSelectionChanged(object sender, EventArgs e)
-        {
-            currentCursorPosition = richTextBox.SelectionStart;
-            if (richTextBox.SelectionLength > 1)
-            {
-                isSelected = true;
-
-                userSelection.start = richTextBox.SelectionStart;
-                userSelection.end = richTextBox.SelectionStart + richTextBox.SelectionLength;
-
-                label1.Text = selectionBorderTmp.start.ToString();
-                label2.Text = selectionBorderTmp.end.ToString();
-            }
-        }
-
-        public (int, int) GetWordBoundaries(int currentCursorPosition, string text)
-        {
-            //Получает границы слова по пробелам с двух сторон
-            int start = -1;
-            int end = -1;
-
-            for (int i = currentCursorPosition; i > -1 & i < text.Length; i++)
-            {
-                if (splitters.Contains(text[i]))
-                {
-                    end = i;
-                    break;
-                }
-            }
-
-            for (int i = currentCursorPosition - 1; i > -1 & i < text.Length; i -= 1)
-            {
-                if (splitters.Contains(text[i]))
-                {
-                    start = i;
-                    break;
-                }
-            }
-
-            if (end == -1) end = text.Length;
-            if (start == -1) start = 0;
-
-            return (start, end);
+            //richTextBox.Text = "Данный текст необходим для проверки работы программы";
+            richTextBox.Text = "Test Text For Check";
+            oldText = richTextBox.Text;
+            currentText = richTextBox.Text;
         }
 
         public (int, int) GetSelectionBoundaries((int start, int end) userSel, int currentCursorPosition, string text)
@@ -107,70 +60,138 @@
             return (start, end);
         }
 
-        private void richTextBoxTextChanged(object sender, EventArgs e)
+        private void RichTextBoxSelectionChanged(object sender, EventArgs e)
         {
-            int lastPrintedLetterIndex = currentCursorPosition - 1;
-            currentText = richTextBox.Text;
-            if (lastPrintedLetterIndex > -1 & lastPrintedLetterIndex < currentText.Length)
+            bool isInvoked = false;
+            currentCursorPosition = richTextBox.SelectionStart;
+            if (richTextBox.SelectionLength > 1)
             {
-                if (splitters.Contains(currentText[currentCursorPosition - 1]))
+                editingZone.start = richTextBox.SelectionStart;
+                editingZone.end = richTextBox.SelectionLength + editingZone.start;
+                isSelected = true;
+            }
+
+            if (richTextBox.Text != currentText)
+            {
+                currentText = richTextBox.Text;
+
+                (int start, int end) changedZone;
+                changedZone = CompareTexts(currentText, oldText);
+
+                int lastChangedLetter = currentCursorPosition - 1;
+                if (lastChangedLetter > -1)
                 {
-                    int borderLength = selectionBorderTmp.end - selectionBorderTmp.start;
-                    string pieceText = "";
-                    try
+                    if (splitters.Contains(currentText[lastChangedLetter]) & !isInvoked)
                     {
-                        pieceText = currentText.Substring(selectionBorderTmp.start, borderLength);
+                        if (editingZone == (-1, -1)) 
+                        {
+                            editingZone = GetSelectionBoundaries((currentText.Length, 0), currentCursorPosition, currentText);
+                        }
+                        TextChanged?.Invoke(editingZone, "");
+                        isTemporary = false;
+                        isEditing = false;
+                        isSelected = false;
+                        isInvoked = true;
                     }
-                    catch
-                    {
-                        
-                    }
-                    TextChanged?.Invoke(selectionBorder, pieceText);
-                    isTemporary = false;
                 }
+                else if (!isInvoked)
+                {
+                    TextChanged?.Invoke(originalZone, "");
+                    isTemporary = false;
+                    isEditing = false;
+                    isSelected = false;
+                    isInvoked = true;
+                }
+
+                if (oldText.Length > currentText.Length)
+                {
+                    if (changedZone.end == changedZone.start & splitters.Contains(oldText[changedZone.start]))
+                    {
+                        isTemporary = false;
+                    }
+                }
+
+
+                if (isSelected) editingZone = GetSelectionBoundaries(editingZone, currentCursorPosition, currentText);
+                else editingZone = GetSelectionBoundaries(changedZone, currentCursorPosition, currentText);
+                isEditing = true;
+
+                if (!isTemporary)
+                {
+                    originalZone = editingZone;
+                    if (currentText.Length > oldText.Length) originalZone.end -= 1;
+                    if (originalZone.start != 0) originalZone.start += 1;
+                    isTemporary = true;
+                }
+
+                oldText = currentText;
             }
-            if (!isSelected)
+            
+            if (isEditing & (currentCursorPosition -1 < editingZone.start | currentCursorPosition > editingZone.end)
+                & editingZone.end - editingZone.start > 1 & !isInvoked) 
             {
-                selectionBorderTmp = GetWordBoundaries(currentCursorPosition, oldText);
-                label1.Text = selectionBorderTmp.start.ToString();
-                label2.Text = selectionBorderTmp.end.ToString();
+                TextChanged?.Invoke(originalZone, "");
+                isEditing = false;
+                isSelected = false;
+                isTemporary = false;
             }
-            else 
-            {
-                selectionBorderTmp = GetSelectionBoundaries(userSelection, currentCursorPosition, richTextBox.Text);
-                label1.Text = selectionBorderTmp.start.ToString();
-                label2.Text = selectionBorderTmp.end.ToString();
-            }
-            if (!isTemporary)
-            {
-                selectionBorder = selectionBorderTmp;
-                isTemporary = true;
-            }
-            isEditing = true;
-            oldText = currentText;
-            return;
         }
 
-        private void ChangeCall()
-        {
-            while (true)
+        private (int, int) TextDeletedOrInserted(string oldText, string newText) {
+            //Символы удалены, старый текст длиннее нового
+            int deletedPieceLength = oldText.Length - newText.Length;
+            int startReplacedFragment = -1;
+            int endReplacedFragment = -1;
+
+            for (int i = 0; i < oldText.Length; i++)
             {
-                if (isEditing)
+                if (i >= newText.Length)
                 {
-                    if (currentCursorPosition - 1 < selectionBorderTmp.start |
-                        currentCursorPosition > selectionBorderTmp.end)
+                    startReplacedFragment = i;
+                    endReplacedFragment = startReplacedFragment + deletedPieceLength - 1;
+                    return (startReplacedFragment, endReplacedFragment);
+                }
+                else if (oldText[i] != newText[i])
+                {
+                    startReplacedFragment = i;
+                    endReplacedFragment = startReplacedFragment + deletedPieceLength - 1;
+                    return (startReplacedFragment, endReplacedFragment);
+                }
+            }
+            return (startReplacedFragment, endReplacedFragment);
+        }
+
+        private (int, int) CompareTexts(string oldText, string newText) {
+            if (oldText.Length == newText.Length)
+            {
+                //Символы заменены на другие, длина текста не изменилась
+                int startReplacedFragment = -1;
+                int endReplacedFragment = -1;
+                bool isFirstLetter = true;
+
+                for (int i = 0; i < oldText.Length; i++)
+                {
+                    if (oldText[i] != newText[i])
                     {
-                        if (selectionBorder.start != 0) selectionBorder.start += 1;
-                        selectionBorder.end -= 1;
-                        int borderLength = selectionBorderTmp.end - selectionBorderTmp.start;
-                        string pieceText = currentText.Substring(selectionBorderTmp.start, borderLength);
-                        TextChanged?.Invoke(selectionBorder, pieceText);
-                        isTemporary = false;
-                        isSelected = false;
-                        isEditing = false;
+                        if (isFirstLetter)
+                        {
+                            startReplacedFragment = i;
+                            isFirstLetter = false;
+                        }
+                        if (!isFirstLetter) endReplacedFragment = i;
                     }
                 }
-                Thread.Sleep(20);
+                return (startReplacedFragment, endReplacedFragment);
+            }
+
+            else if (oldText.Length > newText.Length)
+            {
+                return (TextDeletedOrInserted(oldText, newText));
+            }
+
+            else 
+            {
+                return (TextDeletedOrInserted(newText, oldText));
             }
         }
     }
