@@ -5,16 +5,19 @@
         public delegate void TextChangedEvent((int start, int end) selection, string newText);
         public event TextChangedEvent TextChanged;
 
-        bool isEditing = false;
-        bool isSelected = false;
-        bool isTemporary = false;
-
-        Char[] splitters = { '\n', ' ', '\r' };
-        (int start, int end) editingZone = (-1, -1);
-        (int start, int end) originalZone = (0, 0);
-        int currentCursorPosition = 0;
-        string currentText = "";
+        Char[] splitters = { '\n', ' ', '\r', '\0' };
         string oldText = "";
+        bool textChanged = false;
+        bool isEdited = false;
+        bool isTemporary = false;
+        bool isSelected = false;
+        int currentCursorPosition = 0;
+
+        (int start, int end) currentEditingZone = (0, 0);
+        (int start, int end) userSelection = (0, 0);
+        (int start, int end) oldEditingZone = (0, 0);
+
+        enum Actions { Backspace, Delete, Insert};
 
         public UserTextComponent()
         {
@@ -24,10 +27,7 @@
         private void SetDefaultValuesRichTextBox()
         {
             richTextBox.Font = new Font("Times New Roman", 14);
-            //richTextBox.Text = "Данный текст необходим для проверки работы программы";
-            richTextBox.Text = "Test Text For Check";
-            oldText = richTextBox.Text;
-            currentText = richTextBox.Text;
+            richTextBox.Text = "Данный текст необходим для проверки работы программы";
         }
 
         public (int, int) GetSelectionBoundaries((int start, int end) userSel, int currentCursorPosition, string text)
@@ -62,137 +62,132 @@
 
         private void RichTextBoxSelectionChanged(object sender, EventArgs e)
         {
-            bool isInvoked = false;
-            currentCursorPosition = richTextBox.SelectionStart;
-            if (richTextBox.SelectionLength > 1)
+            if (!textChanged)
             {
-                editingZone.start = richTextBox.SelectionStart;
-                editingZone.end = richTextBox.SelectionLength + editingZone.start;
-                isSelected = true;
-            }
-
-            if (richTextBox.Text != currentText)
-            {
-                currentText = richTextBox.Text;
-
-                (int start, int end) changedZone;
-                changedZone = CompareTexts(currentText, oldText);
-
-                int lastChangedLetter = currentCursorPosition - 1;
-                if (lastChangedLetter > -1)
+                currentCursorPosition = richTextBox.SelectionStart;
+                if (richTextBox.SelectionLength > 0) 
                 {
-                    if (splitters.Contains(currentText[lastChangedLetter]) & !isInvoked)
-                    {
-                        if (editingZone == (-1, -1)) 
-                        {
-                            editingZone = GetSelectionBoundaries((currentText.Length, 0), currentCursorPosition, currentText);
-                        }
-                        TextChanged?.Invoke(editingZone, "");
-                        isTemporary = false;
-                        isEditing = false;
-                        isSelected = false;
-                        isInvoked = true;
-                    }
+                    isSelected = true;
+                    userSelection.start = richTextBox.SelectionStart;
+                    userSelection.end = richTextBox.SelectionStart + richTextBox.SelectionLength;
                 }
-                else if (!isInvoked)
+                if (!CheckRange(currentCursorPosition, currentEditingZone) & isEdited) 
                 {
-                    TextChanged?.Invoke(originalZone, "");
+                    if (oldText != richTextBox.Text) TextChanged?.Invoke(oldEditingZone, "aaaa");
+                    currentEditingZone = GetSelectionBoundaries((richTextBox.Text.Length, 0), currentCursorPosition, richTextBox.Text);
+                    isEdited = false;
                     isTemporary = false;
-                    isEditing = false;
                     isSelected = false;
-                    isInvoked = true;
                 }
-
-                if (oldText.Length > currentText.Length)
-                {
-                    if (changedZone.end == changedZone.start & splitters.Contains(oldText[changedZone.start]))
-                    {
-                        isTemporary = false;
-                    }
-                }
-
-
-                if (isSelected) editingZone = GetSelectionBoundaries(editingZone, currentCursorPosition, currentText);
-                else editingZone = GetSelectionBoundaries(changedZone, currentCursorPosition, currentText);
-                isEditing = true;
-
-                if (!isTemporary)
-                {
-                    originalZone = editingZone;
-                    if (currentText.Length > oldText.Length) originalZone.end -= 1;
-                    if (originalZone.start != 0) originalZone.start += 1;
-                    isTemporary = true;
-                }
-
-                oldText = currentText;
             }
-            
-            if (isEditing & (currentCursorPosition -1 < editingZone.start | currentCursorPosition > editingZone.end)
-                & editingZone.end - editingZone.start > 1 & !isInvoked) 
+            return;
+        }
+
+        private void richTextBoxKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Back)
             {
-                TextChanged?.Invoke(originalZone, "");
-                isEditing = false;
-                isSelected = false;
-                isTemporary = false;
+                if (richTextBox.Text.Length > 0 & currentCursorPosition > 0)
+                {
+                    e.SuppressKeyPress = true;
+                    PrintOrDeleteLetter(Actions.Backspace);
+                }
+            }
+
+            else if (e.KeyCode == Keys.Delete)
+            {
+                if (richTextBox.Text.Length > 0 & currentCursorPosition < richTextBox.Text.Length)
+                {
+                    e.SuppressKeyPress = true;
+                    PrintOrDeleteLetter(Actions.Delete);
+                }
+            }
+            else if (e.KeyCode == Keys.Enter) {
+                //e.SuppressKeyPress = true;
             }
         }
 
-        private (int, int) TextDeletedOrInserted(string oldText, string newText) {
-            //Символы удалены, старый текст длиннее нового
-            int deletedPieceLength = oldText.Length - newText.Length;
-            int startReplacedFragment = -1;
-            int endReplacedFragment = -1;
-
-            for (int i = 0; i < oldText.Length; i++)
+        private void richTextBoxKeyPress(object sender, KeyPressEventArgs e)
+        {
+            e.Handled = true;
+            if (e.KeyChar != '\b')
             {
-                if (i >= newText.Length)
+                if (splitters.Contains(e.KeyChar))
                 {
-                    startReplacedFragment = i;
-                    endReplacedFragment = startReplacedFragment + deletedPieceLength - 1;
-                    return (startReplacedFragment, endReplacedFragment);
+                    if(!isSelected) oldEditingZone = GetSelectionBoundaries((richTextBox.Text.Length, 0), currentCursorPosition, richTextBox.Text);
+                    else oldEditingZone = GetSelectionBoundaries(userSelection, currentCursorPosition, richTextBox.Text);
+                    if (oldEditingZone.start != 0) oldEditingZone.start += 1;
+                    oldEditingZone.end -= 1;
+                    if (oldText != richTextBox.Text) TextChanged?.Invoke(oldEditingZone, "aaaa");
+                    isEdited = false;
+                    isTemporary = false;
+                    isSelected = false;
                 }
-                else if (oldText[i] != newText[i])
+                if (e.KeyChar != '\r')
                 {
-                    startReplacedFragment = i;
-                    endReplacedFragment = startReplacedFragment + deletedPieceLength - 1;
-                    return (startReplacedFragment, endReplacedFragment);
+                    PrintOrDeleteLetter(Actions.Insert, e.KeyChar);
                 }
             }
-            return (startReplacedFragment, endReplacedFragment);
+
         }
 
-        private (int, int) CompareTexts(string oldText, string newText) {
-            if (oldText.Length == newText.Length)
+        private bool CheckRange(int editingIndex, (int start, int end) range) {
+            if (editingIndex > range.start & editingIndex <= range.end)
             {
-                //Символы заменены на другие, длина текста не изменилась
-                int startReplacedFragment = -1;
-                int endReplacedFragment = -1;
-                bool isFirstLetter = true;
-
-                for (int i = 0; i < oldText.Length; i++)
-                {
-                    if (oldText[i] != newText[i])
-                    {
-                        if (isFirstLetter)
-                        {
-                            startReplacedFragment = i;
-                            isFirstLetter = false;
-                        }
-                        if (!isFirstLetter) endReplacedFragment = i;
-                    }
-                }
-                return (startReplacedFragment, endReplacedFragment);
-            }
-
-            else if (oldText.Length > newText.Length)
-            {
-                return (TextDeletedOrInserted(oldText, newText));
+                return true;
             }
 
             else 
             {
-                return (TextDeletedOrInserted(newText, oldText));
+                return false;
             }
+        }
+
+        private void PrintOrDeleteLetter(Actions action, char insertingLetter = ' ')
+        {
+            int nowEditingIndex;
+            if (action == Actions.Backspace) nowEditingIndex = currentCursorPosition - 1;
+            else nowEditingIndex = currentCursorPosition;
+
+            textChanged = true;  //Block richTextBoxSelectionChanged Event
+
+            //if (!isTemporary) 
+            //{
+
+            //}
+            if (action == Actions.Backspace)
+            {
+                if (splitters.Contains(richTextBox.Text[nowEditingIndex]))
+                {
+                    TextChanged?.Invoke(oldEditingZone, "aaaa");
+                    isEdited = false;
+                    isTemporary = false;
+                    isSelected = false;
+                }
+            }
+
+            if (action == Actions.Backspace) richTextBox.Text = richTextBox.Text.Remove(nowEditingIndex, 1);
+            else richTextBox.Text = richTextBox.Text.Insert(nowEditingIndex, insertingLetter.ToString());
+
+            
+
+            if (action == Actions.Backspace) currentCursorPosition -= 1;
+            if (action == Actions.Insert) currentCursorPosition += 1;
+            richTextBox.SelectionStart = currentCursorPosition;
+
+            if (!isSelected) currentEditingZone = GetSelectionBoundaries((richTextBox.Text.Length, 0), nowEditingIndex, richTextBox.Text);
+            else currentEditingZone = GetSelectionBoundaries(userSelection, nowEditingIndex, richTextBox.Text);
+            if (!isTemporary)
+            {
+                oldEditingZone = currentEditingZone;
+                oldText = richTextBox.Text;
+                if (oldEditingZone.start != 0) oldEditingZone.start += 1;
+                if (action == Actions.Insert) oldEditingZone.end -= 2;
+                isTemporary = true;
+            }
+
+            textChanged = false;
+            isEdited = true;
         }
     }
 }
