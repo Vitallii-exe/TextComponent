@@ -10,7 +10,10 @@
         bool textChanged = false;
         bool isEdited = false;
         bool isTemporary = false;
-        bool isFirstEdit = true;
+        bool isFirstEdit = false;
+        bool isIntervalRemoved = false;
+        bool isFirstEdition = true;
+        bool isSkipSpace = false;
         int currentCursorPosition = 0;
 
         (int start, int end) currentEditingZone = (0, 0);
@@ -29,6 +32,7 @@
             richTextBox.Font = new Font("Times New Roman", 14);
             richTextBox.Text = "Данный текст необходим для проверки работы программы";
             userSelection = (richTextBox.Text.Length, 0);
+            currentEditingZone = (0, richTextBox.Text.Length);
         }
         private void CallEvent(string originalText, (int start, int end) range, (int start, int end) oldZone)
         {
@@ -44,7 +48,7 @@
                 if (richTextBox.SelectionLength > 0) 
                 {
                     userSelection.start = richTextBox.SelectionStart;
-                    userSelection.end = richTextBox.SelectionStart + richTextBox.SelectionLength;
+                    userSelection.end = richTextBox.SelectionStart + richTextBox.SelectionLength - 1;
                 }
                 if (!TextProcessers.CheckRange(currentCursorPosition, currentEditingZone) & isEdited) 
                 {
@@ -58,6 +62,7 @@
                                                                                currentCursorPosition,
                                                                                richTextBox.Text,
                                                                                splitters);
+                    TextProcessers.DebugLogger(richTextBox.Text, currentEditingZone);
                     isEdited = false;
                     isTemporary = false;
                 }
@@ -115,57 +120,129 @@
 
             if (action == Actions.Backspace | action == Actions.Delete)
             {
-                if (splitters.Contains(richTextBox.Text[nowEditingIndex]) & currentEditingZone.end - currentEditingZone.start == 1)
+                if (splitters.Contains(richTextBox.Text[nowEditingIndex]))
                 {
-                    CallEvent(richTextBox.Text, currentEditingZone, oldEditingZone);
-                    userSelection = (richTextBox.Text.Length, 0);
+                    //if (currentEditingZone.end - currentEditingZone.start < 2)
+                    //{
+                    //    //CallEvent(richTextBox.Text, currentEditingZone, oldEditingZone);
+                    //    //userSelection = (richTextBox.Text.Length, 0);
 
-                    isEdited = false;
-                    isTemporary = false;
-                    isFirstEdit = true;
+                    //    //isEdited = false;
+                    //    //isTemporary = false;
+                    //    //isFirstEdit = true;
+                    //    //isSkipSpace = true;
+                    //}
+
+                    //else
+                    //{
+                    if (action == Actions.Backspace)
+                    {
+                        oldEditingZone = TextProcessers.GetSelectionBoundaries((oldEditingZone.start - 1, oldEditingZone.end + 1),
+                                                                       oldEditingZone.start,
+                                                                       oldText,
+                                                                       splitters);
+                    }
+                    else
+                    {
+                        oldEditingZone = TextProcessers.GetSelectionBoundaries((oldEditingZone.start, oldEditingZone.end + 2),
+                                                                       oldEditingZone.start,
+                                                                       oldText,
+                                                                       splitters);
+                    }
+                        if (oldEditingZone.start != 0)
+                        {
+                            oldEditingZone.start += 1;
+                        }
+                        oldEditingZone.end -= 1;
+                    //}
                 }
             }
 
             textBeforeEdit = richTextBox.Text;
             if (action == Actions.Backspace)
             {
-                richTextBox.Text = richTextBox.Text.Remove(nowEditingIndex, 1);
-                userSelection.end -= 1;
+                if (richTextBox.SelectionLength == 0)
+                {
+                    richTextBox.Text = richTextBox.Text.Remove(nowEditingIndex, 1);
+                    userSelection.end -= 1;
+                }
+                else
+                {
+                    oldEditingZone = TextProcessers.GetSelectionBoundaries(userSelection,
+                                                                       currentCursorPosition,
+                                                                       richTextBox.Text,
+                                                                       splitters);
+                    oldEditingZone.end -= 1;
+                    richTextBox.Text = richTextBox.Text.Remove(currentCursorPosition, richTextBox.SelectionLength);
+                    userSelection = (currentCursorPosition, currentCursorPosition);
+                    isIntervalRemoved = true;
+                }
             }
             else if (action == Actions.Delete)
             {
-                richTextBox.Text = richTextBox.Text.Remove(nowEditingIndex, 1);
-                userSelection.end -= 1;
+                if (richTextBox.SelectionLength == 0)
+                {
+                    richTextBox.Text = richTextBox.Text.Remove(nowEditingIndex, 1);
+                    userSelection.end -= 1;
+                }
+                else
+                {
+                    oldEditingZone = TextProcessers.GetSelectionBoundaries(userSelection,
+                                                                      currentCursorPosition,
+                                                                      richTextBox.Text,
+                                                                      splitters);
+                    oldEditingZone.end -= 1;
+                    richTextBox.Text = richTextBox.Text.Remove(currentCursorPosition, richTextBox.SelectionLength);
+                    userSelection = (currentCursorPosition, currentCursorPosition);
+                    isIntervalRemoved = true;
+                }
             }
             else
             {
                 richTextBox.Text = richTextBox.Text.Insert(nowEditingIndex, insertingLetter.ToString());
+                userSelection.end += 1;
             }
 
             if (action == Actions.Backspace)
             {
-                currentCursorPosition -= 1;
+                if (!isIntervalRemoved)
+                {
+                    currentCursorPosition -= 1;
+                }
+                else
+                {
+                    nowEditingIndex = currentCursorPosition;
+                    //isIntervalRemoved = false;
+                }
             }
             else if (action == Actions.Insert)
             {
                 currentCursorPosition += 1;
             }
+
             richTextBox.SelectionStart = currentCursorPosition;
 
-            if (splitters.Contains(richTextBox.Text[nowEditingIndex]))
-            {
-                if (nowEditingIndex > userSelection.end) {
-                    userSelection.end = nowEditingIndex + 1;
-                }
-                else if (nowEditingIndex < userSelection.start) {
-                    userSelection.start = nowEditingIndex - 1;
-                }
-            }
+            //if (nowEditingIndex < richTextBox.Text.Length & !isIntervalRemoved)
+            //{
+            //    if (splitters.Contains(richTextBox.Text[nowEditingIndex]))
+            //    {
+            //        if (nowEditingIndex > userSelection.end & !isFirstEdition)
+            //        {
+            //            userSelection.end = nowEditingIndex + 1;
+            //            isFirstEdition = false;
+            //        }
+            //        else if (nowEditingIndex < userSelection.start)
+            //        {
+            //            userSelection.start = nowEditingIndex - 1;
+            //        }
+            //    }
+            //}
+                currentEditingZone = TextProcessers.GetSelectionBoundaries(userSelection,
+                                                                           nowEditingIndex,
+                                                                           richTextBox.Text,
+                                                                           splitters);
+            var _=richTextBox.Text.Length;
 
-            currentEditingZone = TextProcessers.GetSelectionBoundaries(userSelection,
-                                                                       nowEditingIndex,
-                                                                       richTextBox.Text,
-                                                                       splitters);
             TextProcessers.DebugLogger(richTextBox.Text, currentEditingZone);
 
             if (action == Actions.Insert)
@@ -180,25 +257,40 @@
 
             if (!isTemporary)
             {
-                if (!isFirstEdit)
+                if (!isSkipSpace)
                 {
-                    oldText = textBeforeEdit;
+                    if (!isFirstEdit)
+                    {
+                        oldText = textBeforeEdit;
+                    }
+                    else
+                    {
+                        oldText = richTextBox.Text;
+                    }
+
+                    if (!isIntervalRemoved)
+                    {
+                        oldEditingZone = currentEditingZone;
+                    }
+                    else
+                    {
+                        isIntervalRemoved = false;
+                    }
+
+                    if (oldEditingZone.start != 0)
+                    {
+                        oldEditingZone.start += 1;
+                    }
+                    if (action == Actions.Insert & oldEditingZone.end > 1)
+                    {
+                        oldEditingZone.end -= 2;
+                    }
+                    isTemporary = true;
                 }
                 else
                 {
-                    oldText = richTextBox.Text;
+                    isSkipSpace = false;
                 }
-
-                oldEditingZone = currentEditingZone;
-                if (oldEditingZone.start != 0)
-                {
-                    oldEditingZone.start += 1;
-                }
-                if (action == Actions.Insert & oldEditingZone.end > 1)
-                {
-                    oldEditingZone.end -= 2;
-                }
-                isTemporary = true;
             }
 
             textChanged = false;

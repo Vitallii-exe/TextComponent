@@ -29,8 +29,6 @@
         private void InitializeComponent()
         {
             this.richTextBox = new System.Windows.Forms.RichTextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // richTextBox
@@ -44,42 +42,19 @@
             this.richTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.richTextBoxKeyDown);
             this.richTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.richTextBoxKeyPress);
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(29, 219);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(50, 20);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "label1";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(125, 219);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(50, 20);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "label2";
-            // 
             // UserTextComponent
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.richTextBox);
             this.Name = "UserTextComponent";
-            this.Size = new System.Drawing.Size(700, 257);
+            this.Size = new System.Drawing.Size(700, 204);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
 
         private RichTextBox richTextBox;
-        private Label label1;
-        private Label label2;
     }
 }
