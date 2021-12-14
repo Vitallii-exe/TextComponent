@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.richTextBox = new System.Windows.Forms.RichTextBox();
+            this.DistortionButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // richTextBox
@@ -42,13 +43,24 @@
             this.richTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.richTextBoxKeyDown);
             this.richTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.richTextBoxKeyPress);
             // 
+            // DistortionButton
+            // 
+            this.DistortionButton.Location = new System.Drawing.Point(24, 206);
+            this.DistortionButton.Name = "DistortionButton";
+            this.DistortionButton.Size = new System.Drawing.Size(94, 29);
+            this.DistortionButton.TabIndex = 1;
+            this.DistortionButton.Text = "Исказить";
+            this.DistortionButton.UseVisualStyleBackColor = true;
+            this.DistortionButton.Click += new System.EventHandler(this.DistortionButtonClick);
+            // 
             // UserTextComponent
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.DistortionButton);
             this.Controls.Add(this.richTextBox);
             this.Name = "UserTextComponent";
-            this.Size = new System.Drawing.Size(700, 204);
+            this.Size = new System.Drawing.Size(700, 246);
             this.ResumeLayout(false);
 
         }
@@ -56,5 +68,6 @@
         #endregion
 
         private RichTextBox richTextBox;
+        private Button DistortionButton;
     }
 }
