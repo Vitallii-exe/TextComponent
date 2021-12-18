@@ -49,15 +49,12 @@
             if (!textChanged)
             {
                 currentCursorPosition = richTextBox.SelectionStart;
-                if (richTextBox.SelectionLength > 0) 
-                {
-                    userSelection.start = richTextBox.SelectionStart;
-                    userSelection.end = richTextBox.SelectionStart + richTextBox.SelectionLength - 1;
-                }
+                
                 if (!TextProcessers.CheckRange(currentCursorPosition, currentEditingZone) & isEdited) 
                 {
                     if (oldText != richTextBox.Text)
                     {
+                        TextProcessers.WriteLogs(richTextBox.Text, currentEditingZone, oldEditingZone);
                         CallEvent(richTextBox.Text, currentEditingZone, oldEditingZone);
                     }
 
@@ -110,6 +107,11 @@
         }
         private void PrintOrDeleteLetter(Actions action, char insertingLetter = ' ')
         {
+            if (richTextBox.SelectionLength > 0)
+            {
+                userSelection.start = richTextBox.SelectionStart;
+                userSelection.end = richTextBox.SelectionStart + richTextBox.SelectionLength - 1;
+            }
             int nowEditingIndex;
             string textBeforeEdit;
             if (action == Actions.Backspace & currentCursorPosition > 0)

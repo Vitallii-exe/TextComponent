@@ -68,7 +68,18 @@
             string interval = "Start: " + zone.start.ToString() + "\tEnd: " + zone.end.ToString();
             System.Diagnostics.Debug.WriteLine(interval);
             System.Diagnostics.Debug.WriteLine(text.Substring(zone.start, zone.end - zone.start));
+            
             return;
+        }
+
+        public static void WriteLogs(string text, (int start, int end) zone, (int start, int end) oldZone)
+        {
+            using (StreamWriter sw = new StreamWriter("C:\\Users\\Виталий\\source\\work_repos\\TextComponent\\logs\\log.txt", true, System.Text.Encoding.Default))
+            {
+                string logLine = "Start: " + oldZone.start.ToString() + "\tEnd: " + oldZone.end.ToString() +
+                                 text.Substring(zone.start, zone.end - zone.start) + " | " + text;
+                sw.WriteLine(logLine);
+            }
         }
     }
 }
