@@ -40,8 +40,24 @@
         }
         private void CallEvent(string originalText, (int start, int end) range, (int start, int end) oldZone)
         {
+            if (range.start > -1)
+            {
+                if (splitters.Contains(originalText[range.start]) & range.start + 1 < range.end)
+                {
+                    range.start += 1;
+                }
+            }
+            if (range.end < originalText.Length)
+            {
+                if (splitters.Contains(originalText[range.end]) & range.end - 1 > range.start)
+                {
+                    range.end -= 1;
+                }
+            }
+
             string newFragment = originalText.Substring(range.start, range.end - range.start);
             TextChanged?.Invoke(oldEditingZone, newFragment);
+            TextProcessers.WriteLogs(richTextBox.Text, range, oldEditingZone);
             return;
         }
         private void RichTextBoxSelectionChanged(object sender, EventArgs e)
@@ -54,7 +70,6 @@
                 {
                     if (oldText != richTextBox.Text)
                     {
-                        TextProcessers.WriteLogs(richTextBox.Text, currentEditingZone, oldEditingZone);
                         CallEvent(richTextBox.Text, currentEditingZone, oldEditingZone);
                     }
 
@@ -211,7 +226,7 @@
                     richTextBox.Text = richTextBox.Text.Insert(nowEditingIndex, insertingLetter.ToString());
                     if (insertingLetter == ' ')
                     {
-                        if (userSelection.end < nowEditingIndex)
+                        if (userSelection.end <= nowEditingIndex)
                         {
                             userSelection.end = nowEditingIndex + 1;
                         }
