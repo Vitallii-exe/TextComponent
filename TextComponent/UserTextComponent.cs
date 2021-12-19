@@ -48,6 +48,21 @@
                 }
             }
 
+            if (range.start > -1)
+            {
+                if (splitters.Contains(originalText[range.start]) & range.start + 1 < range.end)
+                {
+                    range.start += 1;
+                }
+            }
+            if (range.end < originalText.Length)
+            {
+                if (splitters.Contains(originalText[range.end]) & range.end - 1 > range.start)
+                {
+                    range.end -= 1;
+                }
+            }
+
             string newFragment = originalText.Substring(range.start, range.end - range.start);
             TextChanged?.Invoke(oldEditingZone, newFragment);
             TextProcessers.WriteLogs(richTextBox.Text, range, oldEditingZone);
