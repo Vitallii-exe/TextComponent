@@ -21,7 +21,7 @@
         (int start, int end) userSelection = (0, 0);
         (int start, int end) oldEditingZone = (0, 0);
 
-        enum Actions { Backspace, Delete, Insert};
+        enum Actions { Backspace, Delete, Insert };
 
         DistortionModel myModel = new DistortionModel(0.05f, 0.07f, 0.08f, (5, 15));
 
@@ -59,8 +59,8 @@
             if (!textChanged)
             {
                 currentCursorPosition = richTextBox.SelectionStart;
-                
-                if (!TextProcessers.CheckRange(currentCursorPosition, currentEditingZone) & isEdited) 
+
+                if (!TextProcessers.CheckRange(currentCursorPosition, currentEditingZone) & isEdited)
                 {
                     if (oldText != richTextBox.Text)
                     {
@@ -68,7 +68,7 @@
                     }
 
                     userSelection = (richTextBox.Text.Length, 0);
-                    currentEditingZone = TextProcessers.GetSelectionBoundaries(userSelection, 
+                    currentEditingZone = TextProcessers.GetSelectionBoundaries(userSelection,
                                                                                currentCursorPosition,
                                                                                richTextBox.Text,
                                                                                splitters);
@@ -92,7 +92,7 @@
 
             else if (e.KeyCode == Keys.Delete)
             {
-                if (richTextBox.Text.Length > 0 & (currentCursorPosition < richTextBox.Text.Length | 
+                if (richTextBox.Text.Length > 0 & (currentCursorPosition < richTextBox.Text.Length |
                     richTextBox.SelectionLength != 0))
                 {
                     e.SuppressKeyPress = true;
@@ -165,11 +165,11 @@
                                                                        oldText,
                                                                        splitters);
                     }
-                        if (oldEditingZone.start != 0)
-                        {
-                            oldEditingZone.start += 1;
-                        }
-                        oldEditingZone.end -= 1;
+                    if (oldEditingZone.start != 0)
+                    {
+                        oldEditingZone.start += 1;
+                    }
+                    oldEditingZone.end -= 1;
                     //}
                 }
             }
