@@ -14,6 +14,7 @@
         bool isIntervalRemoved = false;
         //bool isFirstEdition = true;
         bool isSkipSpace = false;
+        bool isIntervalExtended = false;
         int currentCursorPosition = 0;
 
         (int start, int end) currentEditingZone = (0, 0);
@@ -45,21 +46,6 @@
                 if (splitters.Contains(originalText[range.start]) & range.start + 1 < range.end)
                 {
                     range.start += 1;
-                }
-            }
-
-            if (range.start > -1)
-            {
-                if (splitters.Contains(originalText[range.start]) & range.start + 1 < range.end)
-                {
-                    range.start += 1;
-                }
-            }
-            if (range.end < originalText.Length)
-            {
-                if (splitters.Contains(originalText[range.end]) & range.end - 1 > range.start)
-                {
-                    range.end -= 1;
                 }
             }
 
@@ -240,7 +226,6 @@
                         }
                         //userSelection.start = nowEditingIndex - 1;
                     }
-                    //userSelection.end += 1;
                 }
 
                 else
@@ -291,17 +276,30 @@
             //        }
             //    }
             //}
-                currentEditingZone = TextProcessers.GetSelectionBoundaries(userSelection,
-                                                                           nowEditingIndex,
-                                                                           richTextBox.Text,
-                                                                           splitters);
+
+            if (isIntervalExtended & action == Actions.Backspace | action == Actions.Delete)
+            {
+                userSelection.end -= 1;
+                isIntervalExtended = false;
+            }
+
+            currentEditingZone = TextProcessers.GetSelectionBoundaries(userSelection,
+                                                                       nowEditingIndex,
+                                                                       richTextBox.Text,
+                                                                       splitters);
+            if (isIntervalExtended)
+            {
+                userSelection.end -= 1;
+                isIntervalExtended = false;
+            }
             //var _=richTextBox.Text.Length;
 
             TextProcessers.DebugLogger(richTextBox.Text, currentEditingZone);
 
             if (action == Actions.Insert)
             {
-                userSelection = (currentEditingZone.start + 1, currentEditingZone.end);
+                userSelection = (currentEditingZone.start + 1, currentEditingZone.end + 1);
+                isIntervalExtended = true;
             }
             else
             {

@@ -67,7 +67,8 @@
         {
             string interval = "Start: " + zone.start.ToString() + "\tEnd: " + zone.end.ToString();
             System.Diagnostics.Debug.WriteLine(interval);
-            System.Diagnostics.Debug.WriteLine(text.Substring(zone.start, zone.end - zone.start));
+            string lineToDebug = "|" + text.Substring(zone.start, zone.end - zone.start) + "|";
+            System.Diagnostics.Debug.WriteLine(lineToDebug);
             
             return;
         }
