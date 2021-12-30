@@ -12,7 +12,6 @@
         bool isTemporary = false;
         bool isFirstEdit = false;
         bool isIntervalRemoved = false;
-        //bool isFirstEdition = true;
         bool isSkipSpace = false;
         bool isIntervalExtended = false;
         int currentCursorPosition = 0;
@@ -21,6 +20,7 @@
         (int start, int end) userSelection = (0, 0);
         (int start, int end) oldEditingZone = (0, 0);
 
+        int lastString = 0;
         enum Actions { Backspace, Delete, Insert };
 
         DistortionModel myModel = new DistortionModel(0.05f, 0.07f, 0.08f, (5, 15));
@@ -28,7 +28,7 @@
         public UserTextComponent()
         {
             InitializeComponent();
-            SetDefaultValuesRichTextBox("Данный текст необходим для проверки работы программы");
+            SetDefaultValuesRichTextBox("Данный текст необходим\nдля проверки работы программы");
         }
         private void SetDefaultValuesRichTextBox(string text)
         {
@@ -50,6 +50,8 @@
             }
 
             string newFragment = originalText.Substring(range.start, range.end - range.start);
+            oldEditingZone.end = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.end);
+            oldEditingZone.start = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.start);
             TextChanged?.Invoke(oldEditingZone, newFragment);
             TextProcessers.WriteLogs(richTextBox.Text, range, oldEditingZone);
             return;
@@ -59,7 +61,7 @@
             if (!textChanged)
             {
                 currentCursorPosition = richTextBox.SelectionStart;
-
+                
                 if (!TextProcessers.CheckRange(currentCursorPosition, currentEditingZone) & isEdited)
                 {
                     if (oldText != richTextBox.Text)
@@ -99,18 +101,22 @@
                     PrintOrDeleteLetter(Actions.Delete);
                 }
             }
+
+            else if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                //PrintOrDeleteLetter(Actions.Insert, '\n');
+            }
             return;
         }
 
         private void richTextBoxKeyPress(object sender, KeyPressEventArgs e)
         {
             e.Handled = true;
-            if (Char.IsLetterOrDigit(e.KeyChar) | splitters.Contains(e.KeyChar))
+            if (Char.IsLetterOrDigit(e.KeyChar) | Char.IsNumber(e.KeyChar) | 
+                Char.IsPunctuation(e.KeyChar) | Char.IsSeparator(e.KeyChar))
             {
-                if (e.KeyChar != '\r')
-                {
-                    PrintOrDeleteLetter(Actions.Insert, e.KeyChar);
-                }
+                PrintOrDeleteLetter(Actions.Insert, e.KeyChar);
             }
             return;
         }
@@ -132,25 +138,20 @@
                 nowEditingIndex = currentCursorPosition;
             }
 
+            if ((action == Actions.Backspace | action == Actions.Delete) & richTextBox.SelectionLength == 0)
+            {
+                if (richTextBox.Text[nowEditingIndex] == '\n' | richTextBox.Text[nowEditingIndex] == '\r')
+                {
+                    return;
+                }
+            }
+
             textChanged = true;  //Block richTextBoxSelectionChanged Event
 
             if (action == Actions.Backspace | action == Actions.Delete)
             {
                 if (splitters.Contains(richTextBox.Text[nowEditingIndex]))
                 {
-                    //if (currentEditingZone.end - currentEditingZone.start < 2)
-                    //{
-                    //    //CallEvent(richTextBox.Text, currentEditingZone, oldEditingZone);
-                    //    //userSelection = (richTextBox.Text.Length, 0);
-
-                    //    //isEdited = false;
-                    //    //isTemporary = false;
-                    //    //isFirstEdit = true;
-                    //    //isSkipSpace = true;
-                    //}
-
-                    //else
-                    //{
                     if (action == Actions.Backspace)
                     {
                         oldEditingZone = TextProcessers.GetSelectionBoundaries((oldEditingZone.start - 1, oldEditingZone.end + 1),
@@ -170,7 +171,6 @@
                         oldEditingZone.start += 1;
                     }
                     oldEditingZone.end -= 1;
-                    //}
                 }
             }
 
@@ -218,13 +218,12 @@
                 if (richTextBox.SelectionLength == 0)
                 {
                     richTextBox.Text = richTextBox.Text.Insert(nowEditingIndex, insertingLetter.ToString());
-                    if (insertingLetter == ' ')
+                    if (splitters.Contains(insertingLetter))
                     {
                         if (userSelection.end <= nowEditingIndex)
                         {
                             userSelection.end = nowEditingIndex + 1;
                         }
-                        //userSelection.start = nowEditingIndex - 1;
                     }
                 }
 
@@ -251,7 +250,6 @@
                 else
                 {
                     nowEditingIndex = currentCursorPosition;
-                    //isIntervalRemoved = false;
                 }
             }
             else if (action == Actions.Insert)
@@ -260,22 +258,6 @@
             }
 
             richTextBox.SelectionStart = currentCursorPosition;
-
-            //if (nowEditingIndex < richTextBox.Text.Length & !isIntervalRemoved)
-            //{
-            //    if (splitters.Contains(richTextBox.Text[nowEditingIndex]))
-            //    {
-            //        if (nowEditingIndex > userSelection.end & !isFirstEdition)
-            //        {
-            //            userSelection.end = nowEditingIndex + 1;
-            //            isFirstEdition = false;
-            //        }
-            //        else if (nowEditingIndex < userSelection.start)
-            //        {
-            //            userSelection.start = nowEditingIndex - 1;
-            //        }
-            //    }
-            //}
 
             if (isIntervalExtended & action == Actions.Backspace | action == Actions.Delete)
             {
@@ -287,12 +269,12 @@
                                                                        nowEditingIndex,
                                                                        richTextBox.Text,
                                                                        splitters);
+
             if (isIntervalExtended)
             {
                 userSelection.end -= 1;
                 isIntervalExtended = false;
             }
-            //var _=richTextBox.Text.Length;
 
             TextProcessers.DebugLogger(richTextBox.Text, currentEditingZone);
 
@@ -324,18 +306,18 @@
                     {
                         oldEditingZone = currentEditingZone;
                     }
-                    else
-                    {
-                        isIntervalRemoved = false;
-                    }
-
+                   
                     if (oldEditingZone.start != 0)
                     {
                         oldEditingZone.start += 1;
                     }
-                    if (action == Actions.Insert & oldEditingZone.end > 1)
+                    if (action == Actions.Insert & oldEditingZone.end > 1 & !isIntervalRemoved)
                     {
                         oldEditingZone.end -= 2;
+                    }
+                    if (isIntervalRemoved)
+                    {
+                        isIntervalRemoved = false;
                     }
                     isTemporary = true;
                 }
@@ -348,6 +330,7 @@
             textChanged = false;
             isEdited = true;
             isFirstEdit = false;
+
             return;
         }
 

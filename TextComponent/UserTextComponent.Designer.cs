@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.richTextBox = new System.Windows.Forms.RichTextBox();
+            this.richTextBox = new CustomRichTextBox();
             this.DistortionButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
@@ -67,7 +67,7 @@
 
         #endregion
 
-        private RichTextBox richTextBox;
+        private CustomRichTextBox richTextBox;
         private Button DistortionButton;
     }
 }

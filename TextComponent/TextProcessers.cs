@@ -1,6 +1,6 @@
 ﻿namespace TextComponent
 {
-    internal class TextProcessers
+    public class TextProcessers
     {
         public static (int, int) GetSelectionBoundaries((int start, int end) userSel, int currentCursorPosition, string text, Char[] splitters)
         {
@@ -61,6 +61,47 @@
             {
                 return false;
             }
+        }
+
+        public static int GetNumberOfLine(string text, int cursor)
+        {
+            int number = 0;
+            if (cursor < 0 | cursor > text.Length)
+            {
+                return 0;
+            }
+
+            for (int i = 0; i < cursor + 1; i++)
+            {
+                if (text[i] == '\n' | text[i] == '\r')
+                {
+                    number += 1;
+                }
+            }
+
+            return number;
+        }
+
+        public static int GetRelativePositionInLine(string text, int pos)
+        {
+            int relativePosition = -1;
+            if (pos < 0 | pos > text.Length - 1)
+            {
+                return 0;
+            }
+
+            for (int i = 0; i < pos + 1; i++)
+            {
+                if (text[i] == '\n' | text[i] == '\r')
+                {
+                    relativePosition = -1;
+                }
+                else
+                {
+                    relativePosition += 1;
+                }
+            }
+            return relativePosition;
         }
 
         public static void DebugLogger(string text, (int start, int end) zone)
