@@ -137,9 +137,12 @@
                 if (SelectionLength == 0)
                 {
                     isLeftMove = false;
-                    if (!CheckLineBreak(Text, SelectionStart, 1))
+                    if (SelectionStart + 1 < Text.Length)
                     {
-                        Select(SelectionStart, 1);
+                        if (!CheckLineBreak(Text, SelectionStart, 1))
+                        {
+                            Select(SelectionStart, 1);
+                        }
                     }
                 }
                 else
@@ -148,7 +151,7 @@
                     {
                         int newSelectionStart = SelectionStart + 1;
                         int newSelectionLength = SelectionLength - 1;
-                        if (newSelectionStart < Text.Length)
+                        if (newSelectionStart > -1 & newSelectionStart + newSelectionLength -1 < Text.Length)
                         {
                             if (!CheckLineBreak(Text, newSelectionStart, newSelectionLength))
                             {
@@ -159,9 +162,11 @@
                     else
                     {
                         int newSelectionLength = SelectionLength + 1;
-                        if (!CheckLineBreak(Text, SelectionStart, newSelectionLength))
-                        {
-                            Select(SelectionStart, newSelectionLength);
+                        if (SelectionStart + newSelectionLength - 1 < Text.Length) {
+                            if (!CheckLineBreak(Text, SelectionStart, newSelectionLength))
+                            {
+                                Select(SelectionStart, newSelectionLength);
+                            } 
                         }
                     }
                 }
