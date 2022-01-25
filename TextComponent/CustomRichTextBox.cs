@@ -5,6 +5,7 @@
         // Windows message codes
         const int WM_MOUSEMOVE = 0x200;
         const int WM_LBUTTONDOWN = 0x201;
+        const int WM_LBUTTONUP = 0x202;
         const int WM_KEYDOWN = 0x100;
         const int WM_KEYUP = 0x101;
 
@@ -19,6 +20,8 @@
         int selectionStartsFrom = 0;
         bool isLeftMove = false;
         bool isShiftPressed = false;
+        bool blockDragNDrop = false;
+        int lastCursorPosition = 0;
 
         private Point GetPoint(IntPtr _xy)
         {
@@ -40,40 +43,66 @@
                 return false;
             }
         }
+
+        void SelectAreaOnMouseCoordinates(IntPtr cursorXCoord, bool controlDragNDrop = true)
+        {
+            if (controlDragNDrop)
+            {
+                if (blockDragNDrop)
+                {
+                    if (Cursor != Cursors.No)
+                    {
+                        Cursor = Cursors.No;
+                    }
+                    return;
+                }
+            }
+            Point movePosition = GetPoint(cursorXCoord);
+            int pos = GetCharIndexFromPosition(movePosition);
+            if (pos == Text.Length - 1)
+            {
+                // Process situation, when need select last letter in text.
+                // P. S. if cursor is beyond the last character in the control, the return value
+                // GetCharIndexFromPosition() is the index of the last character.
+
+                Point letterPos = GetPositionFromCharIndex(pos);
+                if (movePosition.X - letterPos.X > FontHeight / 2)
+                {
+                    pos += 1;
+                }
+            }
+            if (pos != selectionStartsFrom)
+            {
+                int selStart = selectionStartsFrom;
+                isLeftMove = false;
+                if (pos < selectionStartsFrom)
+                {
+                    selStart = pos;
+                    isLeftMove = true;
+                }
+                int SelLength = Math.Abs(pos - selectionStartsFrom);
+                if (!CheckLineBreak(Text, selStart, SelLength))
+                {
+                    Select(selStart, SelLength);
+                }
+
+            }
+            return;
+        }
         protected override void WndProc(ref Message m)
         {
+            if (m.Msg == WM_LBUTTONUP)
+            {
+                Cursor = Cursors.IBeam;
+                if (SelectionLength != 0)
+                {
+                    blockDragNDrop = true;
+                }
+            }
+            
             if (m.Msg == WM_MOUSEMOVE & m.WParam == (IntPtr)MK_LBUTTON)
             {
-                Point movePosition = GetPoint(m.LParam);
-                int pos = GetCharIndexFromPosition(movePosition);
-                if (pos == Text.Length - 1)
-                {
-                    // Process situation, when need select last letter in text.
-                    // P. S. if cursor is beyond the last character in the control, the return value
-                    // GetCharIndexFromPosition() is the index of the last character.
-
-                    Point letterPos = GetPositionFromCharIndex(pos);
-                    if (movePosition.X - letterPos.X > FontHeight / 2)
-                    {
-                        pos += 1;
-                    }
-                }
-                if (pos != selectionStartsFrom)
-                {
-                    int selStart = selectionStartsFrom;
-                    isLeftMove = false;
-                    if (pos < selectionStartsFrom)
-                    {
-                        selStart = pos;
-                        isLeftMove = true;
-                    }
-                    int SelLength = Math.Abs(pos - selectionStartsFrom);
-                    if (!CheckLineBreak(Text, selStart, SelLength))
-                    {
-                        Select(selStart, SelLength);
-                    }
-
-                }
+                SelectAreaOnMouseCoordinates(m.LParam);
                 return;
             }
 
@@ -100,6 +129,7 @@
                         if (!CheckLineBreak(Text, newSelectionStart, 1))
                         {
                             Select(newSelectionStart, 1);
+                            blockDragNDrop = true;
                         }
                     }
                 }
@@ -114,6 +144,7 @@
                             if (!CheckLineBreak(Text, newSelectionStart, newSelectionLength))
                             {
                                 Select(newSelectionStart, newSelectionLength);
+                                blockDragNDrop = true;
                             }
                         }
                     }
@@ -125,6 +156,7 @@
                             if (!CheckLineBreak(Text, SelectionStart, newSelectionLength))
                             {
                                 Select(SelectionStart, newSelectionLength);
+                                blockDragNDrop = true;
                             }
                         }
                     }
@@ -142,6 +174,7 @@
                         if (!CheckLineBreak(Text, SelectionStart, 1))
                         {
                             Select(SelectionStart, 1);
+                            blockDragNDrop = true;
                         }
                     }
                 }
@@ -156,6 +189,7 @@
                             if (!CheckLineBreak(Text, newSelectionStart, newSelectionLength))
                             {
                                 Select(newSelectionStart, newSelectionLength);
+                                blockDragNDrop = true;
                             }
                         }
                     }
@@ -166,6 +200,7 @@
                             if (!CheckLineBreak(Text, SelectionStart, newSelectionLength))
                             {
                                 Select(SelectionStart, newSelectionLength);
+                                blockDragNDrop = true;
                             } 
                         }
                     }
@@ -179,10 +214,20 @@
                 return;
             }
 
+            if (m.Msg == WM_LBUTTONDOWN & isShiftPressed)
+            {
+                SelectAreaOnMouseCoordinates(m.LParam, false);
+                return;
+            }
+
             base.WndProc(ref m);
 
             if (m.Msg == WM_LBUTTONDOWN)
             {
+                if (SelectionLength == 0)
+                {
+                    blockDragNDrop = false;
+                }
                 selectionStartsFrom = SelectionStart;
             }
         }
