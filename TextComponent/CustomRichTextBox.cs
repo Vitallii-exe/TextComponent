@@ -15,13 +15,17 @@
         const int VK_RIGHT = 0x27;
         const int VK_DOWN = 0x28;
         const int VK_SHIFT = 0x10;
+        const int VK_CONTROL = 0x11;
         const int MK_LBUTTON = 0x1;
+        const int VK_A = 0x41;
+        const int VK_V = 0x56;
+        const int VK_X = 0x58;
 
         int selectionStartsFrom = 0;
         bool isLeftMove = false;
         bool isShiftPressed = false;
+        bool isControlPressed = false;
         bool blockDragNDrop = false;
-        int lastCursorPosition = 0;
 
         private Point GetPoint(IntPtr _xy)
         {
@@ -91,6 +95,40 @@
         }
         protected override void WndProc(ref Message m)
         {
+            if (m.Msg == WM_KEYDOWN & m.WParam == (IntPtr)VK_SHIFT)
+            {
+                isShiftPressed = true;
+                return;
+            }
+
+            if (m.Msg == WM_KEYUP & m.WParam == (IntPtr)VK_SHIFT)
+            {
+                isShiftPressed = false;
+                return;
+            }
+
+            if (m.Msg == WM_KEYDOWN & m.WParam == (IntPtr)VK_CONTROL)
+            {
+                isControlPressed = true;
+            }
+
+            if (m.Msg == WM_KEYUP & m.WParam == (IntPtr)VK_CONTROL)
+            {
+                isControlPressed = false;
+            }
+
+            //Ignore Shift + Up/Down
+            if (m.Msg == WM_KEYDOWN & (m.WParam == (IntPtr)VK_UP | m.WParam == (IntPtr)VK_DOWN) & isShiftPressed)
+            {
+                return;
+            }
+
+            //Ignore Ctrl + A/V/X
+            if (m.Msg == WM_KEYDOWN & (m.WParam == (IntPtr)VK_A | m.WParam == (IntPtr)VK_V | m.WParam == (IntPtr)VK_X) & isControlPressed)
+            {
+                return;
+            }
+
             if (m.Msg == WM_LBUTTONUP)
             {
                 Cursor = Cursors.IBeam;
@@ -103,18 +141,6 @@
             if (m.Msg == WM_MOUSEMOVE & m.WParam == (IntPtr)MK_LBUTTON)
             {
                 SelectAreaOnMouseCoordinates(m.LParam);
-                return;
-            }
-
-            if (m.Msg == WM_KEYDOWN & m.WParam == (IntPtr)VK_SHIFT)
-            {
-                isShiftPressed = true;
-                return;
-            }
-
-            if (m.Msg == WM_KEYUP & m.WParam == (IntPtr)VK_SHIFT)
-            {
-                isShiftPressed = false;
                 return;
             }
 
@@ -205,12 +231,6 @@
                         }
                     }
                 }
-                return;
-            }
-
-            //Ignore Shift + Up/Down
-            if (m.Msg == WM_KEYDOWN & (m.WParam == (IntPtr)VK_UP | m.WParam == (IntPtr)VK_DOWN) & isShiftPressed)
-            {
                 return;
             }
 

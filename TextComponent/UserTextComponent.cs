@@ -2,7 +2,7 @@
 {
     public partial class UserTextComponent : UserControl
     {
-        public delegate void TextChangedEvent((int start, int end) selection, string newText);
+        public delegate void TextChangedEvent((int start, int end) relativeSelection, (int start, int end) absoluteSelection, string newText);
         public event TextChangedEvent TextChanged;
 
         Char[] splitters = { '\n', ' ', '\r', '\0' };
@@ -20,7 +20,6 @@
         (int start, int end) userSelection = (0, 0);
         (int start, int end) oldEditingZone = (0, 0);
 
-        int lastString = 0;
         enum Actions { Backspace, Delete, Insert };
 
         DistortionModel myModel = new DistortionModel(0.05f, 0.07f, 0.08f, (5, 15));
@@ -50,9 +49,10 @@
             }
 
             string newFragment = originalText.Substring(range.start, range.end - range.start);
-            oldEditingZone.end = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.end);
-            oldEditingZone.start = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.start);
-            TextChanged?.Invoke(oldEditingZone, newFragment);
+            (int start, int end) relativeEditingZone;
+            relativeEditingZone.end = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.end);
+            relativeEditingZone.start = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.start);
+            TextChanged?.Invoke(relativeEditingZone, oldEditingZone, newFragment);
             TextProcessers.WriteLogs(richTextBox.Text, range, oldEditingZone);
             return;
         }

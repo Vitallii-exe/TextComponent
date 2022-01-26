@@ -7,9 +7,10 @@ namespace TextComponent
             InitializeComponent();
         }
 
-        private void TextEdited((int start, int end) selection, string newText)
+        private void TextEdited((int start, int end) relativeSelection, (int start, int end) absoluteSelection, string newText)
         {
-            string fromStartToEnd = selection.start.ToString() + " : " + selection.end.ToString();
+            string fromStartToEnd = "Отн. координаты: " + relativeSelection.start.ToString() + " : " + relativeSelection.end.ToString() +
+                                    "\nАбс. координаты: " + absoluteSelection.start.ToString() + " : " + absoluteSelection.end.ToString();
             MessageBox.Show(fromStartToEnd, newText, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }

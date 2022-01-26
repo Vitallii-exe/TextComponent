@@ -94,7 +94,7 @@
             {
                 if (text[i] == '\n' | text[i] == '\r')
                 {
-                    relativePosition = -1;
+                    relativePosition = - 1;
                 }
                 else
                 {
