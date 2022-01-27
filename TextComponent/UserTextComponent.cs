@@ -2,7 +2,7 @@
 {
     public partial class UserTextComponent : UserControl
     {
-        public delegate void TextChangedEvent((int start, int end) relativeSelection, (int start, int end) absoluteSelection, string newText);
+        public delegate void TextChangedEvent((int relativeEditingZoneStart, int relativeEditingZoneLength, int numbLine) lastInterval, string newText);
         public event TextChangedEvent TextChanged;
 
         Char[] splitters = { '\n', ' ', '\r', '\0' };
@@ -49,10 +49,24 @@
             }
 
             string newFragment = originalText.Substring(range.start, range.end - range.start);
-            (int start, int end) relativeEditingZone;
-            relativeEditingZone.end = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.end);
-            relativeEditingZone.start = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.start);
-            TextChanged?.Invoke(relativeEditingZone, oldEditingZone, newFragment);
+            (int relativeEditingZoneStart, int relativeEditingZoneLength, int numbLine) eventData;
+            int numberLine = 0;
+
+            int relEditingZoneStart = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.start, ref numberLine);
+            int relEditingZoneEnd = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.end, ref numberLine);
+            if (relEditingZoneEnd < 0 | relEditingZoneStart < 0)
+            {
+                eventData.relativeEditingZoneStart = 0;
+                eventData.relativeEditingZoneLength = 0;
+            }
+            else
+            {
+                eventData.relativeEditingZoneStart = relEditingZoneStart;
+                eventData.relativeEditingZoneLength = relEditingZoneEnd - relEditingZoneStart + 1;
+            }
+            eventData.numbLine = numberLine;
+
+            TextChanged?.Invoke(eventData, newFragment);
             TextProcessers.WriteLogs(richTextBox.Text, range, oldEditingZone);
             return;
         }
@@ -60,9 +74,17 @@
         {
             if (!textChanged)
             {
+                int currCursorPosition = richTextBox.SelectionStart;
                 currentCursorPosition = richTextBox.SelectionStart;
-                
-                if (!TextProcessers.CheckRange(currentCursorPosition, currentEditingZone) & isEdited)
+                if (currCursorPosition == 0)
+                {
+                    if (splitters.Contains(richTextBox.Text[currCursorPosition]))
+                    {
+                        currCursorPosition = -1;
+                    }
+                }
+
+                if (!TextProcessers.CheckRange(currCursorPosition, currentEditingZone) & isEdited)
                 {
                     if (oldText != richTextBox.Text)
                     {
@@ -71,7 +93,7 @@
 
                     userSelection = (richTextBox.Text.Length, 0);
                     currentEditingZone = TextProcessers.GetSelectionBoundaries(userSelection,
-                                                                               currentCursorPosition,
+                                                                               currCursorPosition,
                                                                                richTextBox.Text,
                                                                                splitters);
                     TextProcessers.DebugLogger(richTextBox.Text, currentEditingZone);
@@ -165,6 +187,15 @@
 
         void DoBackspaceDeleteInsert(int nowEditingIndex, char insertingLetter, Actions action)
         {
+            //if (nowEditingIndex < 0)
+            //{
+            //    nowEditingIndex = 0;
+            //}
+            //else if (nowEditingIndex > richTextBox.Text.Length)
+            //{
+            //    nowEditingIndex = richTextBox.Text.Length;
+            //}
+
             if (action == Actions.Backspace)
             {
                 if (richTextBox.SelectionLength == 0)
@@ -207,7 +238,14 @@
             {
                 if (richTextBox.SelectionLength == 0)
                 {
-                    richTextBox.Text = richTextBox.Text.Insert(nowEditingIndex, insertingLetter.ToString());
+                    if (nowEditingIndex >= 0)
+                    {
+                        richTextBox.Text = richTextBox.Text.Insert(nowEditingIndex, insertingLetter.ToString());
+                    }
+                    else
+                    {
+                        richTextBox.Text = richTextBox.Text.Insert(0, insertingLetter.ToString());
+                    }
                     if (splitters.Contains(insertingLetter))
                     {
                         if (userSelection.end <= nowEditingIndex)
