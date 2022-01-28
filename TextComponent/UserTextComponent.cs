@@ -27,7 +27,8 @@
         public UserTextComponent()
         {
             InitializeComponent();
-            SetDefaultValuesRichTextBox("Данный текст необходим\nдля проверки работы программы");
+            //SetDefaultValuesRichTextBox("Данный текст необходим\nдля проверки работы программы");
+            SetDefaultValuesRichTextBox("Текст для проверки компонента\nдля проверки работы программы\nДалее пустая строка\n\nЕщё небольшой текст.");
         }
         private void SetDefaultValuesRichTextBox(string text)
         {
@@ -50,10 +51,10 @@
 
             string newFragment = originalText.Substring(range.start, range.end - range.start);
             (int relativeEditingZoneStart, int relativeEditingZoneLength, int numbLine) eventData;
-            int numberLine = 0;
+            eventData.numbLine = TextProcessers.GetNumberOfLine(originalText, range.start);
 
-            int relEditingZoneStart = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.start, ref numberLine);
-            int relEditingZoneEnd = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.end, ref numberLine);
+            int relEditingZoneStart = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.start);
+            int relEditingZoneEnd = TextProcessers.GetRelativePositionInLine(oldText, oldEditingZone.end);
             if (relEditingZoneEnd < 0 | relEditingZoneStart < 0)
             {
                 eventData.relativeEditingZoneStart = 0;
@@ -64,7 +65,7 @@
                 eventData.relativeEditingZoneStart = relEditingZoneStart;
                 eventData.relativeEditingZoneLength = relEditingZoneEnd - relEditingZoneStart + 1;
             }
-            eventData.numbLine = numberLine;
+            
 
             TextChanged?.Invoke(eventData, newFragment);
             TextProcessers.WriteLogs(richTextBox.Text, range, oldEditingZone);
@@ -127,7 +128,6 @@
             else if (e.KeyCode == Keys.Enter)
             {
                 e.SuppressKeyPress = true;
-                //PrintOrDeleteLetter(Actions.Insert, '\n');
             }
             return;
         }
@@ -187,15 +187,6 @@
 
         void DoBackspaceDeleteInsert(int nowEditingIndex, char insertingLetter, Actions action)
         {
-            //if (nowEditingIndex < 0)
-            //{
-            //    nowEditingIndex = 0;
-            //}
-            //else if (nowEditingIndex > richTextBox.Text.Length)
-            //{
-            //    nowEditingIndex = richTextBox.Text.Length;
-            //}
-
             if (action == Actions.Backspace)
             {
                 if (richTextBox.SelectionLength == 0)

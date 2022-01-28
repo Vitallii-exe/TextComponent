@@ -82,10 +82,9 @@
             return number;
         }
 
-        public static int GetRelativePositionInLine(string text, int pos, ref int numberOfLine)
+        public static int GetRelativePositionInLine(string text, int pos)
         {
             int relativePosition = -1;
-            numberOfLine = 0;
             if (pos < 0 | pos > text.Length - 1)
             {
                 return 0;
@@ -96,7 +95,6 @@
                 if (text[i] == '\n' | text[i] == '\r')
                 {
                     relativePosition = - 1;
-                    numberOfLine += 1;
                 }
                 else
                 {
